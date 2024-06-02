@@ -17,6 +17,6 @@ services:
       MINIO_ROOT_PASSWORD: Kesar302minio
       MINIO_CERT_PUBLIC_KEY: /etc/letsencrypt/live/arpansahu.me/fullchain.pem
       MINIO_CERT_PRIVATE_KEY: /etc/letsencrypt/live/arpansahu.me/privatekey.pem
-      MINIO_SERVER_URL: https://minio.arpanshau.me:9002   
+      # MINIO_SERVER_URL: https://minio.arpanshau.me:9002   
     command: server /data --console-address ":9001" --address "0.0.0.0:9000"
     restart: unless-stopped
