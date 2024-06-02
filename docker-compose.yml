@@ -9,7 +9,7 @@ services:
       - "9001:9001"
     volumes:
       - /root/minio/data :/data
-      - /root/certs:/root/.minio/certs
+      # - /root/certs:/root/.minio/certs
       # - /Users/arpansahu/projects/profile/minios3/data :/data
       # - /Users/arpansahu/projects/profile/certs:/root/.minio/certs
     environment: 
