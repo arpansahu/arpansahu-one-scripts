@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Define the virtual environment directory
-VENV_DIR="venv"
+VENV_DIR="/root/arpansahu-one-scripts/venv"
 
 # Define the requirements file
-REQUIREMENTS_FILE="requirements.txt"
+REQUIREMENTS_FILE="/root/arpansahu-one-scripts/requirements.txt"
 
 # Define the Python script to run
-PYTHON_SCRIPT="website_monitor.py"
+PYTHON_SCRIPT="/root/arpansahu-one-scripts/website_monitor.py"
 
 # Check if virtual environment directory exists
 if [ -d "$VENV_DIR" ]; then
@@ -43,5 +43,9 @@ fi
 
 # Deactivate the virtual environment
 deactivate
+
+# Remove the virtual environment directory
+echo "Deleting virtual environment..."
+rm -rf "$VENV_DIR"
 
 echo "Done."
