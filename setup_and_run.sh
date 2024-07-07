@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Define the virtual environment directory
-VENV_DIR="/root/arpansahu-one-scripts/venv"
+VENV_DIR="venv"
 
 # Define the requirements file
-REQUIREMENTS_FILE="/root/arpansahu-one-scripts/requirements.txt"
+REQUIREMENTS_FILE="requirements.txt"
 
 # Define the Python script to run
-PYTHON_SCRIPT="/root/arpansahu-one-scripts/website_monitor.py"
+PYTHON_SCRIPT="website_up_time.py"
 
 # Check if virtual environment directory exists
 if [ -d "$VENV_DIR" ]; then
