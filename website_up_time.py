@@ -11,7 +11,10 @@ website_urls = [
     "https://pgadmin.arpansahu.me/",
     "https://grafana.arpansahu.me/",
     "https://redis.arpansahu.me/",
-    "https://portainer.arpansahu.me/"
+    "https://portainer.arpansahu.me/",
+    "https://minioui.arpansahu.me/",
+    "https://kube.arpansahu.me/",
+    "https://harbor.arpansahu.me/",
 ]
 
 # Mailjet API credentials
