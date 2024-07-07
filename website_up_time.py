@@ -1,7 +1,15 @@
 import requests
 import smtplib
+import logging
 from email.mime.text import MIMEText
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, RequestException
+from time import sleep
+from retrying import retry
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Website to monitor
 website_urls = [
@@ -18,10 +26,13 @@ website_urls = [
 ]
 
 # Mailjet API credentials
-mailjet_api_key = "0792ed4148e32da9b6e3a7d9d61a8f5b"
-mailjet_secret_key = "923fd6a3ad7e83a7af1105083de5ae1c"
-sender_email = "admin@arpansahu.me"
-receiver_email = "arpanrocks95@gmail.com"
+mailjet_api_key = os.getenv("MAILJET_API_KEY")
+mailjet_secret_key = os.getenv("MAILJET_SECRET_KEY")
+sender_email = os.getenv("SENDER_EMAIL")
+receiver_email = os.getenv("RECEIVER_EMAIL")
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def send_email(subject, body):
     msg = MIMEText(body)
@@ -29,31 +40,36 @@ def send_email(subject, body):
     msg["From"] = sender_email
     msg["To"] = receiver_email
 
-    # Connect to the SMTP server
-    with smtplib.SMTP("smtp.mailjet.com", 587) as server:
-        server.starttls()
-        server.login(mailjet_api_key, mailjet_secret_key)
+    try:
+        # Connect to the SMTP server
+        with smtplib.SMTP("smtp.mailjet.com", 587) as server:
+            server.starttls()
+            server.login(mailjet_api_key, mailjet_secret_key)
+            # Send email
+            server.sendmail(sender_email, [receiver_email], msg.as_string())
+        logging.info(f"Email sent successfully: {subject}")
+    except smtplib.SMTPException as e:
+        logging.error(f"Failed to send email: {e}")
 
-        # Send email
-        server.sendmail(sender_email, [receiver_email], msg.as_string())
+@retry(stop_max_attempt_number=3, wait_fixed=2000)
+def check_website_status(website):
+    response = requests.get(website, timeout=10)  # Set a timeout for the request
+    response.raise_for_status()  # Raise an HTTPError for bad responses (4xx or 5xx)
+    return response
 
-def check_website():
+def check_websites():
     for website in website_urls:
         try:
-            response = requests.get(website, timeout=10)  # Set a timeout for the request
-            response.raise_for_status()  # Raise an HTTPError for bad responses (4xx or 5xx)
-
-            # Check if the status code is not 2xx
+            response = check_website_status(website)
             if response.status_code // 100 != 2:
                 send_email("Website Alert", f"The website {website} returned a non-2xx status code: {response.status_code}")
         except HTTPError as e:
-            # Check if the status code is 401 or 403
             if e.response.status_code == 401 or e.response.status_code == 403:
-                print(f"The website {website} returned a {e.response.status_code} status code. This is allowed.")
+                logging.info(f"The website {website} returned a {e.response.status_code} status code. This is allowed.")
             else:
                 send_email("Website Alert", f"An error occurred while checking the website {website}. Error: {str(e)}")
-        except requests.exceptions.RequestException as e:
+        except RequestException as e:
             send_email("Website Alert", f"An error occurred while checking the website {website}. Error: {str(e)}")
 
 if __name__ == "__main__":
-    check_website()
+    check_websites()
