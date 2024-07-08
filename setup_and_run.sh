@@ -9,6 +9,8 @@ REQUIREMENTS_FILE="requirements.txt"
 # Define the Python script to run
 PYTHON_SCRIPT="website_up_time.py"
 
+cd root/arpansahu-one-script
+
 # Check if virtual environment directory exists
 if [ -d "$VENV_DIR" ]; then
     echo "Virtual environment already exists."
