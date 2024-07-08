@@ -66,11 +66,12 @@ def check_websites():
             else:
                 print(f"Everything went fine for {website}")
                 logging.info(f"Everything went fine for {website}")
-                
+
         except HTTPError as e:
             if e.response.status_code == 401 or e.response.status_code == 403:
                 logging.info(f"The website {website} returned a {e.response.status_code} status code. This is allowed.")
             else:
+                logging.info(f"The website {website} returned a {e.response.status_code} status code. This is not allowed. Sending Mail")
                 send_email("Website Alert", f"An error occurred while checking the website {website}. Error: {str(e)}")
         except RequestException as e:
             send_email("Website Alert", f"An error occurred while checking the website {website}. Error: {str(e)}")
