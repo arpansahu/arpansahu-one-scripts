@@ -64,7 +64,6 @@ def check_websites():
             if response.status_code // 100 != 2:
                 send_email("Website Alert", f"The website {website} returned a non-2xx status code: {response.status_code}")
             else:
-                print(f"Everything went fine for {website}")
                 logging.info(f"Everything went fine for {website}")
 
         except HTTPError as e:
