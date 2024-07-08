@@ -40,7 +40,7 @@ if [ -f "$REQUIREMENTS_FILE" ]; then
     echo "Installing dependencies..."
     pip install -r "$REQUIREMENTS_FILE" || { echo "Failed to install dependencies."; exit 1; }
 else
-    echo "Requirements file not found. Skipping dependency installation."
+    echo "Requirements file not found at $REQUIREMENTS_FILE. Skipping dependency installation."
 fi
 
 # Run the Python script
@@ -48,7 +48,7 @@ if [ -f "$PYTHON_SCRIPT" ]; then
     echo "Running the Python script..."
     python "$PYTHON_SCRIPT" || { echo "Failed to run the Python script."; exit 1; }
 else
-    echo "Python script not found. Exiting."
+    echo "Python script not found at $PYTHON_SCRIPT. Exiting."
     exit 1
 fi
 
