@@ -1,12 +1,16 @@
 #!/bin/bash
 
 # Define the base directory where the .env file is located
-BASE_DIR="/path/to"
+BASE_DIR="/root"
 
 # Load environment variables from .env file if it exists
 if [ -f "$BASE_DIR/.env" ]; then
     echo "Loading environment variables from .env file..."
     source "$BASE_DIR/.env"
+    echo "MAILJET_API_KEY: $MAILJET_API_KEY"
+    echo "MAILJET_SECRET_KEY: $MAILJET_SECRET_KEY"
+    echo "SENDER_EMAIL: $SENDER_EMAIL"
+    echo "RECEIVER_EMAIL: $RECEIVER_EMAIL"
 fi
 
 # Email details
@@ -16,7 +20,7 @@ LOG_FILE="/root/logs/docker_prune.log"
 BODY=$(cat "$LOG_FILE")
 
 # Send email using Mailjet API
-curl -s \
+RESPONSE=$(curl -s \
   -X POST \
   --user "$MAILJET_API_KEY:$MAILJET_SECRET_KEY" \
   https://api.mailjet.com/v3.1/send \
@@ -38,4 +42,6 @@ curl -s \
         "TextPart": "'"$BODY"'"
       }
     ]
-  }'
+  }')
+
+echo "Mailjet API Response: $RESPONSE"
