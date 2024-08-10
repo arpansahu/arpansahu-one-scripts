@@ -58,7 +58,7 @@ crontab -e
 
 ```sh
 0 */5 * * * /bin/bash /root/arpansahu-one-scripts/setup_and_run.sh >> /root/logs/website_up_time.log 2>&1
-0 0 * * * /usr/bin/docker system prune -af --volumes > /root/logs/docker_prune.log 2>&1 && /root/arpansahu-one-scripts/docker_cleanup_mail.sh
+0 0 * * * export MAILJET_API_KEY="MAILJET_API_KEY" && export MAILJET_SECRET_KEY="MAILJET_SECRET_KEY" && export SENDER_EMAIL="SENDER_EMAIL" && export RECEIVER_EMAIL="RECEIVER_EMAIL" && /usr/bin/docker system prune -af --volumes > /root/logs/docker_prune.log 2>&1 && /root/arpansahu-one-scripts/docker_cleanup_mail.sh
 ```
 
 # Integrating Jenkins
