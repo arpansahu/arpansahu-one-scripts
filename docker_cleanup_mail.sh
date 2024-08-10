@@ -35,6 +35,13 @@ fi
 # Read the log file contents
 BODY=$(cat "$LOG_FILE")
 
+# Debugging output
+echo "Sending email with the following details:"
+echo "To: $RECEIVER_EMAIL"
+echo "From: $SENDER_EMAIL"
+echo "Subject: Docker Prune Completed"
+echo "Body: $BODY"
+
 # Send email using Mailjet API
 RESPONSE=$(curl -s \
   -X POST \
