@@ -14,10 +14,8 @@ load_dotenv()
 # Website to monitor
 website_urls = [
     "https://arpansahu.me",
-    "https://prometheus.arpansahu.me/",
     "https://jenkins.arpansahu.me/",
     "https://pgadmin.arpansahu.me/",
-    "https://grafana.arpansahu.me/",
     "https://redis.arpansahu.me/",
     "https://portainer.arpansahu.me/",
     "https://minioui.arpansahu.me/",
