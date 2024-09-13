@@ -41,13 +41,15 @@ echo "Container using the largest volume: $CONTAINER_NAME ($CONTAINER_ID) with i
 # 3. Access the Docker Container and perform cleanup
 echo "Attempting to perform cleanup in container $CONTAINER_NAME..." >> $LOG_FILE
 
-# Ensure correct directory exists before attempting to clean up
+# Cleanup command with safe checks
 docker exec $CONTAINER_ID sh -c "
-    if [ -d /var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/ ]; then
-        cd /var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/ && rm -rf *
+    SNAPSHOT_DIR='/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/'
+    if [ -d \$SNAPSHOT_DIR ]; then
+        echo 'Cleaning up snapshots directory...' 
+        rm -rf \$SNAPSHOT_DIR*
         crictl rmi --prune
     else
-        echo 'Directory not found, skipping cleanup.'
+        echo 'Snapshot directory not found, skipping cleanup.'
     fi
 " >> $LOG_FILE 2>&1
 
