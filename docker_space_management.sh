@@ -1,51 +1,54 @@
 #!/bin/bash
 
+LOG_FILE="/root/logs/docker_space_management.log"
+
 # Log the current time and date
-echo "Docker Space Management Process Started at $(date)" >> /var/log/docker_space_management.log
+echo "Docker Space Management Process Started at $(date)" >> $LOG_FILE
 
 # 0. Check System Size
-echo "Checking current system disk usage..." >> /var/log/docker_space_management.log
-df -h >> /var/log/docker_space_management.log
+echo "Checking current system disk usage..." >> $LOG_FILE
+df -h >> $LOG_FILE
 
 # 1. Check Docker Space Usage
-echo "Checking Docker disk usage..." >> /var/log/docker_space_management.log
-docker system df -v >> /var/log/docker_space_management.log
+echo "Checking Docker disk usage..." >> $LOG_FILE
+docker system df -v >> $LOG_FILE
 
 # 2. Identify the Largest Volume
 LARGEST_VOLUME=$(docker system df -v | grep -E '^VOLUME NAME' -A 1 | tail -n 1 | awk '{print $1}')
-echo "Largest volume identified: $LARGEST_VOLUME" >> /var/log/docker_space_management.log
+if [ -z "$LARGEST_VOLUME" ]; then
+    echo "No volumes found. Exiting..." >> $LOG_FILE
+    exit 1
+fi
+
+echo "Largest volume identified: $LARGEST_VOLUME" >> $LOG_FILE
 
 # Find the container associated with the largest volume
 CONTAINER_ID=$(docker ps -a --filter "volume=$LARGEST_VOLUME" --format "{{.ID}}")
 CONTAINER_NAME=$(docker ps -a --filter "volume=$LARGEST_VOLUME" --format "{{.Names}}")
-echo "Container using the largest volume: $CONTAINER_NAME ($CONTAINER_ID)" >> /var/log/docker_space_management.log
+if [ -z "$CONTAINER_ID" ]; then
+    echo "No container found using the largest volume. Exiting..." >> $LOG_FILE
+    exit 1
+fi
+
+echo "Container using the largest volume: $CONTAINER_NAME ($CONTAINER_ID)" >> $LOG_FILE
 
 # 3. Access the Docker Container and perform cleanup
-if [ -n "$CONTAINER_ID" ]; then
-    echo "Accessing container $CONTAINER_NAME and performing cleanup..." >> /var/log/docker_space_management.log
-    docker exec -it $CONTAINER_ID sh -c "
-        echo 'Navigating to snapshots directory...'
-        cd /var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/
-        
-        echo 'Removing all snapshots...'
-        rm -rf *
-        
-        echo 'Cleaning up unused images...'
-        crictl rmi --prune
-        
-        echo 'Cleanup completed inside container.'
-    " >> /var/log/docker_space_management.log
+echo "Attempting to perform cleanup in container $CONTAINER_NAME..." >> $LOG_FILE
+docker exec $CONTAINER_ID sh -c "
+    cd /var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/ && \
+    rm -rf * && \
+    crictl rmi --prune
+" >> $LOG_FILE 2>&1
+
+if [ $? -eq 0 ]; then
+    echo "Cleanup completed successfully in container $CONTAINER_NAME." >> $LOG_FILE
 else
-    echo "No container found using the largest volume. Skipping container cleanup." >> /var/log/docker_space_management.log
+    echo "Failed to clean up container $CONTAINER_NAME." >> $LOG_FILE
 fi
 
 # 7. Recheck System Size
-echo "Rechecking system disk usage..." >> /var/log/docker_space_management.log
-df -h >> /var/log/docker_space_management.log
+echo "Rechecking system disk usage..." >> $LOG_FILE
+df -h >> $LOG_FILE
 
 # Log completion time
-echo "Docker Space Management Process Completed at $(date)" >> /var/log/docker_space_management.log
-
-# Send log file via email (optional)
-# Replace with your email sending mechanism or leave this commented if not needed.
-# mail -s "Docker Space Management Log" your-email@example.com < /var/log/docker_space_management.log
+echo "Docker Space Management Process Completed at $(date)" >> $LOG_FILE
