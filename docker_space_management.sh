@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOG_FILE="/root/logs/docker_space_management.log"
+LOG_FILE="/var/log/docker_space_management.log"
 
 # Log the current time and date
 echo "Docker Space Management Process Started at $(date)" >> $LOG_FILE
@@ -14,13 +14,17 @@ echo "Checking Docker disk usage..." >> $LOG_FILE
 docker system df -v >> $LOG_FILE
 
 # 2. Identify the Largest Volume
-LARGEST_VOLUME=$(docker system df -v | grep -E '^VOLUME NAME' -A 1 | tail -n 1 | awk '{print $1}')
+
+# Extract volume data, sort by size, and pick the largest one
+LARGEST_VOLUME=$(docker system df -v | awk '/VOLUME NAME/{getline; print $1, $3}' | sort -k2 -rh | head -n 1 | awk '{print $1}')
+LARGEST_VOLUME_SIZE=$(docker system df -v | awk '/VOLUME NAME/{getline; print $1, $3}' | sort -k2 -rh | head -n 1 | awk '{print $2}')
+
 if [ -z "$LARGEST_VOLUME" ]; then
     echo "No volumes found. Exiting..." >> $LOG_FILE
     exit 1
 fi
 
-echo "Largest volume identified: $LARGEST_VOLUME" >> $LOG_FILE
+echo "Largest volume identified: $LARGEST_VOLUME (Size: $LARGEST_VOLUME_SIZE)" >> $LOG_FILE
 
 # Find the container associated with the largest volume
 CONTAINER_ID=$(docker ps -a --filter "volume=$LARGEST_VOLUME" --format "{{.ID}}")
@@ -34,10 +38,15 @@ echo "Container using the largest volume: $CONTAINER_NAME ($CONTAINER_ID)" >> $L
 
 # 3. Access the Docker Container and perform cleanup
 echo "Attempting to perform cleanup in container $CONTAINER_NAME..." >> $LOG_FILE
+
+# Ensure correct directory exists before attempting to clean up
 docker exec $CONTAINER_ID sh -c "
-    cd /var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/ && \
-    rm -rf * && \
-    crictl rmi --prune
+    if [ -d /var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/ ]; then
+        cd /var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/ && rm -rf *
+        crictl rmi --prune
+    else
+        echo 'Directory not found, skipping cleanup.'
+    fi
 " >> $LOG_FILE 2>&1
 
 if [ $? -eq 0 ]; then
