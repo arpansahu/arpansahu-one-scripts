@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOG_FILE="/var/log/docker_space_management.log"
+LOG_FILE="/root/logs/docker_space_management.log"
 
 # Log the current time and date
 echo "Docker Space Management Process Started at $(date)" >> $LOG_FILE
